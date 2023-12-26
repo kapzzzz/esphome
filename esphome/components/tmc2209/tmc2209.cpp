@@ -20,6 +20,8 @@ void TMC2209::setup() {
   stepper_driver_->mstep_reg_select(true);
   stepper_driver_->en_spreadCycle(false);
 
+  stepper_driver_->VACTUAL(0);
+
   if (reverse_direction_)
     stepper_driver_->shaft(true);
 
@@ -43,28 +45,44 @@ void TMC2209::dump_config() {
   LOG_STEPPER(this);
 }
 void TMC2209::loop() {
-  // if (this->sleep_pin_ != nullptr) {
-  //   bool sleep_rising_edge = !sleep_pin_state_ & !at_target;
-  //   this->sleep_pin_->digital_write(!at_target);
-  //   this->sleep_pin_state_ = !at_target;
-  //   if (sleep_rising_edge) {
-  //     delayMicroseconds(1000);
-  //   }
-  // }
-  if (at_target = this->has_reached_target()) {
+  bool at_target = this->has_reached_target();
+  bool driver_enabled = false;
+  int speed = 0;
+  if (this->sleep_pin_ != nullptr) {
+    bool sleep_rising_edge = !sleep_pin_state_ & !at_target;
+    this->sleep_pin_->digital_write(!at_target);
+    this->sleep_pin_state_ = !at_target;
+    if (sleep_rising_edge) {
+      delayMicroseconds(1000);
+    }
+  }
+  if (at_target) {
+    speed = 0;
     this->high_freq_.stop();
   } else {
+    speed = this->max_speed_;
     this->high_freq_.start();
   }
 
   int32_t dir = this->should_step_();
-  if (dir == 0)
-    return;
+  if (dir == 0) {
+    speed = 0;
+  } else {
+    speed = dir * speed;
+  }
 
-  this->dir_pin_->digital_write(dir == 1);
-  this->step_pin_->digital_write(true);
-  delayMicroseconds(1);
-  this->step_pin_->digital_write(false);
+  if (speed != 0 && !driver_enabled) {
+    stepper_driver_->toff(0x2);  // Enable driver
+    driver_enabled = true;
+  }
+
+  // set speed
+  stepper_driver_->VACTUAL(speed);
+
+  if (speed == 0 && driver_enabled) {
+    stepper_driver_->toff(0x0);  // disable driver
+    driver_enabled = false;
+  }
 }
 
 }  // namespace tmc

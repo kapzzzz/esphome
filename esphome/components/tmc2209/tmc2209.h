@@ -12,7 +12,11 @@ namespace tmc {
 class TMC2209 : public stepper::Stepper, public Component, public uart::UARTDevice {
  public:
   TMC2209(GPIOPin *step_pin, GPIOPin *dir_pin, uint8_t uart_address, float sense_resistor, bool reverse_direction)
-      : step_pin_(step_pin), dir_pin_(dir_pin), uart_address_(uart_address), sense_resistor_(sense_resistor), reverse_direction_(reverse_direction) {}
+      : step_pin_(step_pin),
+        dir_pin_(dir_pin),
+        uart_address_(uart_address),
+        sense_resistor_(sense_resistor),
+        reverse_direction_(reverse_direction) {}
 
   void set_sleep_pin(GPIOPin *sleep_pin) { this->sleep_pin_ = sleep_pin; }
   void setup() override;
