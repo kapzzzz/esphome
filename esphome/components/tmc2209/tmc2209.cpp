@@ -43,16 +43,15 @@ void TMC2209::dump_config() {
   LOG_STEPPER(this);
 }
 void TMC2209::loop() {
-  bool at_target = this->has_reached_target();
-  if (this->sleep_pin_ != nullptr) {
-    bool sleep_rising_edge = !sleep_pin_state_ & !at_target;
-    this->sleep_pin_->digital_write(!at_target);
-    this->sleep_pin_state_ = !at_target;
-    if (sleep_rising_edge) {
-      delayMicroseconds(1000);
-    }
-  }
-  if (at_target) {
+  // if (this->sleep_pin_ != nullptr) {
+  //   bool sleep_rising_edge = !sleep_pin_state_ & !at_target;
+  //   this->sleep_pin_->digital_write(!at_target);
+  //   this->sleep_pin_state_ = !at_target;
+  //   if (sleep_rising_edge) {
+  //     delayMicroseconds(1000);
+  //   }
+  // }
+  if (at_target = this->has_reached_target()) {
     this->high_freq_.stop();
   } else {
     this->high_freq_.start();
@@ -64,7 +63,7 @@ void TMC2209::loop() {
 
   this->dir_pin_->digital_write(dir == 1);
   this->step_pin_->digital_write(true);
-  delayMicroseconds(2);
+  delayMicroseconds(1);
   this->step_pin_->digital_write(false);
 }
 
